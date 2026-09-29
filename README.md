@@ -6,17 +6,22 @@ Created 2026-09-28 · Last updated 2026-09-29
 
 ## Files
 
-- `etf-live.html` — the portal page
+- `etf-live.html` — the portal page. On every load/refresh it fetches fresh
+  quotes from the portal worker's `/api/quotes` endpoint (server-side Yahoo
+  fetch, 60-second edge cache); the baked bundle below remains as the
+  instant first-paint fallback if the API is unreachable.
 - `etf-live.css` — its stylesheet
-- `etf-live-bundle.json` — fresh market data, rebaked server-side every 5
-  minutes on weekdays 04:00–21:00 ET by `build_live_bundle.py` (in the
-  `trading` repo)
+- `etf-live-bundle.json` — market-data snapshot baked server-side into the
+  page and the sibling JSON. The 5-minute rebake cron was retired
+  2026-09-29 when the page moved to the live `/api/quotes` feed; the bundle
+  is now a first-paint fallback only.
 - `nyse-holidays.json` — the NYSE full-day closure list the page uses for
   session labels; assembled at deploy time from the cross-thread repo (see
   below), never fetched by visitors from GitHub
 
-The page never fetches market data over the network: fresh data is baked
-into the page and the sibling JSON by the bundler. It loads the holiday file
+The page fetches live quotes from the portal worker's `/api/quotes` endpoint
+on every load/refresh and falls back to the baked bundle for instant
+first paint. It loads the holiday file
 from the same deployed origin before first paint.
 
 ## Branches

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ETF Live — QQQ · SPY · GLD</title>
+<!--
+  ETF LIVE — single-file dashboard (QQQ / SPY / GLD)
+  =================================================
+  Deploy to GitHub Pages:
+    1. Create a repo (e.g. "etf-live"), upload this file as index.html
+       (rename it to index.html) at the repo root.
+    2. Repo Settings → Pages → Deploy from branch → main / root → Save.
+    3. Open https://<you>.github.io/etf-live/ — done. No build step.
+
+  Any static host works the same way (Netlify Drop, Cloudflare Pages,
+  Vercel, plain web space): upload this one file and serve it.
+
+  Data: Yahoo Finance chart API (no key) for daily history + live price,
+  Quotes are delayed ~15 min; extended-hours
+  prices appear when published.
+  Economic-event dates are embedded below (ECON_EVENTS) — update them from
+  the BLS / Federal Reserve schedules when they roll forward.
+-->
+<link rel="stylesheet" href="etf-live.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>ETF Live</h1>
+      <div id="status"><span class="st-updating">Starting…</span></div>
+    </div>
+    <div class="refresh-ctl">
+      <span class="ver">v1</span><br>
+      <label>Refresh every
+        <input id="refreshSec" type="number" min="5" max="3600" step="1" value="30">
+        sec
+      </label>
+      <button id="applyRefresh" type="button">Apply</button>
+      <div id="countdown"></div>
+    </div>
+  </header>
+  <div id="err"></div>
+  <main id="cards"></main>
+  <section id="upcoming"></section>
+  <footer>
+    Quotes &amp; daily history: Yahoo Finance (delayed ~15 min, no API key).<br>
+    Extended-hours prices appear when published. Charts: daily closes;
+    the live price is appended as today's point while the market is open.
+  </footer>
+</div>
+<!-- Bundled market data, baked in server-side every 5 min (cron etf-live-bundle).
+     The page renders INSTANTLY from this with zero network calls, so it works
+     in every browser. Newer data is picked up from etf-live-bundle.json
+     when the host serves it next to this page. -->
+<script id="bundled" type="application/json">
+/*__BUNDLE_START__*/
+{"at":"2026-09-28T11:52:47-04:00","syms":{"QQQ":{"bars":[["2026-03-30",558.28],["2026-03-31",577.18],["2026-04-01",584.31],["2026-04-02",584.98],["2026-04-06",588.5],["2026-04-07",588.59],["2026-04-08",606.09],["2026-04-09",610.19],["2026-04-10",611.07],["2026-04-13",617.39],["2026-04-14",628.6],["2026-04-15",637.4],["2026-04-16",640.47],["2026-04-17",648.85],["2026-04-20",646.79],["2026-04-21",644.33],["2026-04-22",655.11],["2026-04-23",651.42],["2026-04-24",663.88],["2026-04-27",664.23],["2026-04-28",657.55],["2026-04-29",661.57],["2026-04-30",667.74],["2026-05-01",674.15],["2026-05-04",672.88],["2026-05-05",681.61],["2026-05-06",695.77],["2026-05-07",694.94],["2026-05-08",711.23],["2026-05-11",713.29],["2026-05-12",707.24],["2026-05-13",714.71],["2026-05-14",719.79],["2026-05-15",708.93],["2026-05-18",705.88],["2026-05-19",701.53],["2026-05-20",713.15],["2026-05-21",714.51],["2026-05-22",717.54],["2026-05-26",730.28],["2026-05-27",729.45],["2026-05-28",735.6],["2026-05-29",738.31],["2026-06-01",742.74],["2026-06-02",746.16],["2026-06-03",744.21],["2026-06-04",740.61],["2026-06-05",705.06],["2026-06-08",716.07],["2026-06-09",707.83],["2026-06-10",693.69],["2026-06-11",717.12],["2026-06-12",721.34],["2026-06-15",744.0],["2026-06-16",729.86],["2026-06-17",722.51],["2026-06-18",740.62],["2026-06-22",737.95],["2026-06-23",713.65],["2026-06-24",710.62],["2026-06-25",716.38],["2026-06-26",706.52],["2026-06-29",724.08],["2026-06-30",736.4],["2026-07-01",725.17],["2026-07-02",712.6],["2026-07-06",722.82],["2026-07-07",709.43],["2026-07-08",711.44],["2026-07-09",723.28],["2026-07-10",725.51],["2026-07-13",711.74],["2026-07-14",719.69],["2026-07-15",717.74],["2026-07-16",705.94],["2026-07-17",695.33],["2026-07-20",696.06],["2026-07-21",708.97],["2026-07-22",705.35],["2026-07-23",691.96],["2026-07-24",684.23],["2026-07-27",682.12],["2026-07-28",675.49],["2026-07-29",661.73],["2026-07-30",683.55],["2026-07-31",687.99],["2026-08-03",700.07],["2026-08-04",723.85],["2026-08-05",717.3],["2026-08-06",714.65],["2026-08-07",723.03],["2026-08-10",720.87],["2026-08-11",718.45],["2026-08-12",723.7],["2026-08-13",732.07],["2026-08-14",731.07],["2026-08-17",729.87],["2026-08-18",717.51],["2026-08-19",716.08],["2026-08-20",710.93],["2026-08-21",713.44],["2026-08-24",706.32],["2026-08-25",710.72],["2026-08-26",711.37],["2026-08-27",721.11],["2026-08-28",716.43],["2026-08-31",716.76],["2026-09-01",707.64],["2026-09-02",709.24],["2026-09-03",717.67],["2026-09-04",718.96],["2026-09-08",718.36],["2026-09-09",716.31],["2026-09-10",708.69],["2026-09-11",714.88],["2026-09-14",709.18],["2026-09-15",704.54],["2026-09-16",704.72],["2026-09-17",716.92],["2026-09-18",721.45],["2026-09-21",741.47],["2026-09-22",747.46],["2026-09-23",741.21],["2026-09-24",741.1],["2026-09-25",744.5],["2026-09-28",734.76]],"live":734.76,"liveDate":"2026-09-28"},"SPY":{"bars":[["2026-03-30",631.97],["2026-03-31",650.34],["2026-04-01",655.24],["2026-04-02",655.83],["2026-04-06",658.93],["2026-04-07",659.22],["2026-04-08",676.01],["2026-04-09",679.91],["2026-04-10",679.46],["2026-04-13",686.1],["2026-04-14",694.46],["2026-04-15",699.94],["2026-04-16",701.66],["2026-04-17",710.14],["2026-04-20",708.72],["2026-04-21",704.08],["2026-04-22",711.21],["2026-04-23",708.45],["2026-04-24",713.94],["2026-04-27",715.17],["2026-04-28",711.69],["2026-04-29",711.58],["2026-04-30",718.66],["2026-05-01",720.65],["2026-05-04",718.01],["2026-05-05",723.77],["2026-05-06",733.83],["2026-05-07",731.58],["2026-05-08",737.62],["2026-05-11",739.3],["2026-05-12",738.18],["2026-05-13",742.31],["2026-05-14",748.17],["2026-05-15",739.17],["2026-05-18",738.65],["2026-05-19",733.73],["2026-05-20",741.25],["2026-05-21",742.72],["2026-05-22",745.64],["2026-05-26",750.59],["2026-05-27",750.46],["2026-05-28",754.6],["2026-05-29",756.48],["2026-06-01",758.54],["2026-06-02",759.57],["2026-06-03",754.24],["2026-06-04",757.09],["2026-06-05",737.55],["2026-06-08",739.22],["2026-06-09",737.05],["2026-06-10",725.43],["2026-06-11",737.76],["2026-06-12",741.75],["2026-06-15",754.83],["2026-06-16",750.33],["2026-06-17",740.96],["2026-06-18",746.74],["2026-06-22",744.39],["2026-06-23",733.58],["2026-06-24",733.24],["2026-06-25",734.3],["2026-06-26",728.99],["2026-06-29",741.0],["2026-06-30",746.77],["2026-07-01",745.76],["2026-07-02",744.78],["2026-07-06",751.28],["2026-07-07",747.71],["2026-07-08",745.4],["2026-07-09",751.71],["2026-07-10",754.95],["2026-07-13",749.17],["2026-07-14",751.83],["2026-07-15",754.81],["2026-07-16",750.72],["2026-07-17",743.29],["2026-07-20",742.09],["2026-07-21",748.28],["2026-07-22",747.41],["2026-07-23",738.18],["2026-07-24",738.93],["2026-07-27",739.09],["2026-07-28",740.86],["2026-07-29",729.46],["2026-07-30",741.69],["2026-07-31",747.03],["2026-08-03",757.67],["2026-08-04",771.33],["2026-08-05",769.79],["2026-08-06",768.56],["2026-08-07",773.26],["2026-08-10",773.03],["2026-08-11",770.56],["2026-08-12",772.49],["2026-08-13",777.88],["2026-08-14",776.34],["2026-08-17",772.67],["2026-08-18",767.45],["2026-08-19",769.06],["2026-08-20",762.6],["2026-08-21",765.72],["2026-08-24",763.47],["2026-08-25",765.91],["2026-08-26",766.08],["2026-08-27",771.1],["2026-08-28",769.35],["2026-08-31",767.05],["2026-09-01",761.78],["2026-09-02",765.16],["2026-09-03",773.17],["2026-09-04",770.19],["2026-09-08",765.96],["2026-09-09",762.4],["2026-09-10",757.83],["2026-09-11",764.29],["2026-09-14",760.88],["2026-09-15",757.39],["2026-09-16",754.05],["2026-09-17",762.6],["2026-09-18",761.69],["2026-09-21",773.5],["2026-09-22",773.38],["2026-09-23",767.81],["2026-09-24",767.18],["2026-09-25",771.35],["2026-09-28",764.95]],"live":764.95,"liveDate":"2026-09-28"},"GLD":{"bars":[["2026-03-30",414.58],["2026-03-31",430.29],["2026-04-01",437.82],["2026-04-02",429.41],["2026-04-06",427.65],["2026-04-07",431.81],["2026-04-08",434.53],["2026-04-09",437.91],["2026-04-10",437.13],["2026-04-13",435.36],["2026-04-14",445.09],["2026-04-15",440.46],["2026-04-16",440.08],["2026-04-17",445.93],["2026-04-20",442.09],["2026-04-21",429.57],["2026-04-22",435.26],["2026-04-23",431.04],["2026-04-24",433.25],["2026-04-27",429.89],["2026-04-28",421.91],["2026-04-29",417.41],["2026-04-30",423.66],["2026-05-01",423.18],["2026-05-04",414.71],["2026-05-05",418.27],["2026-05-06",430.96],["2026-05-07",431.68],["2026-05-08",433.77],["2026-05-11",434.65],["2026-05-12",432.93],["2026-05-13",430.5],["2026-05-14",427.21],["2026-05-15",417.29],["2026-05-18",418.43],["2026-05-19",411.5],["2026-05-20",417.4],["2026-05-21",416.99],["2026-05-22",413.82],["2026-05-26",414.0],["2026-05-27",408.49],["2026-05-28",412.77],["2026-05-29",417.12],["2026-06-01",411.26],["2026-06-02",411.95],["2026-06-03",407.87],["2026-06-04",411.27],["2026-06-05",396.24],["2026-06-08",397.27],["2026-06-09",390.78],["2026-06-10",374.58],["2026-06-11",386.32],["2026-06-12",386.54],["2026-06-15",396.55],["2026-06-16",397.63],["2026-06-17",388.6],["2026-06-18",387.12],["2026-06-22",384.59],["2026-06-23",377.32],["2026-06-24",365.92],["2026-06-25",369.46],["2026-06-26",373.63],["2026-06-29",368.58],["2026-06-30",368.38],["2026-07-01",370.6],["2026-07-02",378.13],["2026-07-06",382.13],["2026-07-07",377.49],["2026-07-08",374.45],["2026-07-09",378.18],["2026-07-10",377.01],["2026-07-13",367.13],["2026-07-14",372.15],["2026-07-15",372.35],["2026-07-16",364.96],["2026-07-17",368.41],["2026-07-20",367.6],["2026-07-21",374.81],["2026-07-22",379.12],["2026-07-23",371.52],["2026-07-24",371.9],["2026-07-27",374.63],["2026-07-28",369.37],["2026-07-29",371.08],["2026-07-30",377.16],["2026-07-31",371.54],["2026-08-03",371.71],["2026-08-04",374.16],["2026-08-05",389.64],["2026-08-06",389.67],["2026-08-07",398.47],["2026-08-10",402.54],["2026-08-11",400.96],["2026-08-12",404.92],["2026-08-13",398.96],["2026-08-14",401.48],["2026-08-17",405.49],["2026-08-18",398.55],["2026-08-19",413.84],["2026-08-20",415.26],["2026-08-21",423.36],["2026-08-24",426.69],["2026-08-25",428.07],["2026-08-26",421.32],["2026-08-27",422.6],["2026-08-28",408.89],["2026-08-31",408.42],["2026-09-01",396.75],["2026-09-02",402.78],["2026-09-03",410.22],["2026-09-04",406.77],["2026-09-08",399.72],["2026-09-09",403.35],["2026-09-10",396.36],["2026-09-11",398.77],["2026-09-14",392.84],["2026-09-15",394.15],["2026-09-16",391.74],["2026-09-17",398.36],["2026-09-18",401.17],["2026-09-21",398.38],["2026-09-22",400.07],["2026-09-23",392.88],["2026-09-24",391.69],["2026-09-25",393.41],["2026-09-28",377.73]],"live":377.73,"liveDate":"2026-09-28"}}}
+/*__BUNDLE_END__*/
+</script>
+<script>
+"use strict";
+/* ============================== config ============================== */
+const SYMBOLS = [
+  {sym:"QQQ", name:"Invesco QQQ Trust",    color:"#3b82f6"},
+  {sym:"SPY", name:"SPDR S&P 500 ETF Trust",color:"#10b981"},
+  {sym:"GLD", name:"SPDR Gold Shares",      color:"#d97706"},
+];
+// Market data: baked in by build_live_bundle.py (see the data-layer note
+// in the "market data" section below). The page never fetches Yahoo
+// directly: Yahoo sends no Access-Control-Allow-Origin header, so a
+// browser fetch always fails, and public CORS proxies are dead
+// (verified 2026-09-26).
+const yahooChartURL = s =>
+  `https://query1.finance.yahoo.com/v8/finance/chart/${s}?range=6mo&interval=1d`;
+// NYSE holidays (sessions labelled "Market closed").
+// Loaded at runtime from "nyse-holidays.json" — same origin, assembled at
+// deploy time from the canonical list (see scripts/deploy_portal.py). The
+// page never fetches holiday data from GitHub or anywhere else on the
+// network. Until the fetch succeeds the set stays empty (fail open).
+let NYSE_HOLIDAYS = new Set();
+// Best-effort load of the deployed holiday file. Called at the top of every
+// tick — including the first — so holidays are in place before first paint.
+async function loadHolidays(){
+  const c = new AbortController();
+  const t = setTimeout(()=>c.abort(), 8000);
+  try{
+    const r = await fetch("nyse-holidays.json",
+      {cache:"no-store", signal:c.signal});
+    if(!r.ok) return; // not served alongside the page; fail open
+    const d = JSON.parse(await r.text());
+    if(!d || !Array.isArray(d.holidays) || !d.holidays.length) return;
+    const ok = d.holidays.every(h=>typeof h==="string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(h));
+    if(!ok) return;
+    NYSE_HOLIDAYS = new Set(d.holidays);
+  }catch(e){
+    /* fail open: session labels fall back to weekday-only */
+  }finally{
+    clearTimeout(t);
+  }
+}
+// Economic-release dates (BLS / Federal Reserve schedules). Update as they roll.
+const ECON_EVENTS = [
+  {date:"2026-08-07",label:"NFP", note:"July jobs report"},
+  {date:"2026-08-12",label:"CPI", note:"July CPI"},
+  {date:"2026-08-13",label:"PPI", note:"July PPI"},
+  {date:"2026-09-04",label:"NFP", note:"August jobs report"},
+  {date:"2026-09-10",label:"PPI", note:"August PPI"},
+  {date:"2026-09-11",label:"CPI", note:"August CPI"},
+  {date:"2026-09-16",label:"FOMC",note:"FOMC decision + SEP"},
+  {date:"2026-10-02",label:"NFP", note:"September jobs report"},
+  {date:"2026-10-14",label:"CPI", note:"September CPI"},
+  {date:"2026-10-15",label:"PPI", note:"September PPI"},
+  {date:"2026-10-28",label:"FOMC",note:"FOMC decision"},
+  {date:"2026-11-06",label:"NFP", note:"October jobs report"},
+  {date:"2026-11-10",label:"CPI", note:"October CPI"},
+  {date:"2026-11-13",label:"PPI", note:"October PPI"},
+  {date:"2026-12-04",label:"NFP", note:"November jobs report"},
+  {date:"2026-12-09",label:"FOMC",note:"FOMC decision + SEP"},
+  {date:"2026-12-10",label:"CPI", note:"November CPI"},
+  {date:"2026-12-15",label:"PPI", note:"November PPI"},
+];
+const ECON_COLOR = "#8b5cf6";
+
+/* ============================== time ============================== */
+function etParts(d){
+  d = d || new Date();
+  const parts = new Intl.DateTimeFormat("en-CA",{
+    timeZone:"America/New_York", hourCycle:"h23",
+    year:"numeric",month:"2-digit",day:"2-digit",
+    hour:"2-digit",minute:"2-digit",second:"2-digit",weekday:"short",
+  }).formatToParts(d);
+  const o = {};
+  for(const x of parts) o[x.type] = x.value;
+  return o;
+}
+function etDateStr(d){ const p = etParts(d); return `${p.year}-${p.month}-${p.day}`; }
+function etDateFromEpoch(ts){
+  return new Intl.DateTimeFormat("en-CA",{timeZone:"America/New_York",
+    year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date(ts*1000));
+}
+function addDays(ds, n){
+  const [y,m,dd] = ds.split("-").map(Number);
+  const d = new Date(Date.UTC(y, m-1, dd + n));
+  return d.toISOString().slice(0,10);
+}
+function marketSession(){
+  const p = etParts();
+  const ds = `${p.year}-${p.month}-${p.day}`;
+  if(p.weekday==="Sat" || p.weekday==="Sun" || NYSE_HOLIDAYS.has(ds))
+    return {key:"closed", label:"Market closed"};
+  const mins = (+p.hour)*60 + (+p.minute);
+  if(mins >=  4*60 && mins <  9*60+30) return {key:"pre",  label:"Pre-Mkt"};
+  if(mins >=  9*60+30 && mins < 16*60) return {key:"open", label:"Market open"};
+  if(mins >= 16*60 && mins < 20*60)    return {key:"post", label:"Aft-Hrs"};
+  return {key:"closed", label:"Market closed"};
+}
+function etClock(){
+  const p = etParts();
+  let h = +p.hour; const ap = h>=12 ? "PM" : "AM"; h = h%12 || 12;
+  return `<span class="seg">${p.weekday} ${p.month}/${p.day}</span> · <span class="seg">${h}:${p.minute} ${ap} ET</span>`;
+}
+
+/* ============================== market data ==============================
+   NOTE (verified 2026-09-26): Yahoo's chart API sends NO
+   Access-Control-Allow-Origin header, so a browser can NEVER fetch it
+   directly. Public CORS proxies were tried and are dead (allorigins
+   times out / HTTP 500, corsproxy.io returns HTTP 401). So this page
+   does NOT fetch market data over the network at all. Instead:
+     1. build_live_bundle.py bakes fresh Yahoo data INTO this file
+        (embedded #bundled JSON) and into etf-live-bundle.json next to it,
+        every 5 min on weekdays 04:00-21:00 ET (cron etf-live-bundle).
+     2. The page paints instantly from the embedded bundle (zero network).
+     3. Each refresh tick tries same-origin etf-live-bundle.json for newer
+        data; where the host serves sibling files (GitHub Pages) the page
+        stays live, otherwise the embedded bundle stands with its age
+        shown honestly in the status line. */
+/* ============================== formatting ============================== */
+const fmt2 = v => Math.abs(v).toLocaleString("en-US",
+  {minimumFractionDigits:2, maximumFractionDigits:2});
+const sgn = v => v>=0 ? "+" : "\u2212";
+const money = v => "$"+fmt2(v);
+const smoney = v => sgn(v)+money(v);
+const spct = v => sgn(v)+Math.abs(v).toFixed(2)+"%";
+function pill(change, pct, small){
+  const up = change>=0;
+  return `<span class="pill ${up?"up":"down"}${small?" small":""}">`+
+    `${smoney(change)} (${spct(pct)})</span>`;
+}
+/* ============================== charts ==============================
+   JS port of the ETF alert chart builder: same geometry, paddings, label
+   collision handling, and econ-event markers. */
+const CH = {W:560, H:196, PADL:64, PADR:32, PADT:44, PADB:36,
+            BLEED:[-14,-12,28,20]};
+function niceTicks(lo, hi, n){
+  n = n || 4;
+  const span = hi-lo, step = span/(n-1);
+  const mag = step>=1 ? Math.pow(10, String(Math.floor(step)).length-1) : 1;
+  let s = 10*mag;
+  for(const m of [1,2,2.5,5,10]){ if(step/mag <= m){ s = m*mag; break; } }
+  const ticks = [];
+  for(let t = Math.floor(lo/s)*s; t <= hi + s*0.01 && ticks.length<8; t += s){
+    if(t >= lo - s*0.01) ticks.push(t);
+  }
+  return ticks.filter(t => t >= lo - span*0.05 && t <= hi + span*0.05).slice(0,5);
+}
+function chartSVG(data, color, gid, ariaLabel, events){
+  const {W,H,PADL,PADR,PADT,PADB} = CH;
+  const vals = data.map(d=>d[1]);
+  let lo = Math.min(...vals), hi = Math.max(...vals);
+  const pad = (hi-lo)*0.08 || 1; lo -= pad; hi += pad;
+  const n = data.length;
+  const X = i => PADL + i*(W-PADL-PADR)/(n-1);
+  const Y = v => PADT + (hi-v)*(H-PADT-PADB)/(hi-lo);
+  const pts = data.map((d,i)=>[X(i), Y(d[1])]);
+  const line = "M " + pts.map(p=>`${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" L ");
+  const area = `${line} L ${pts[n-1][0].toFixed(1)},${H-PADB} `+
+               `L ${pts[0][0].toFixed(1)},${H-PADB} Z`;
+  let grid = "";
+  for(const t of niceTicks(Math.min(...vals), Math.max(...vals))){
+    const yy = Y(t);
+    grid += `<line x1="${PADL}" y1="${yy.toFixed(1)}" x2="${W-PADR}" y2="${yy.toFixed(1)}" `+
+            `stroke="var(--border)" stroke-width="1"/>`+
+            `<text x="${PADL-8}" y="${(yy+4).toFixed(1)}" text-anchor="end" font-size="11" `+
+            `fill="var(--muted)" font-family="sans-serif">${+t.toPrecision(6)}</text>`;
+  }
+  // x labels: ~6 ticks, always including the final date
+  let idxs = [];
+  const k = Math.max(1, Math.floor(n/6));
+  for(let i=0;i<n;i+=k) idxs.push(i);
+  if(idxs[idxs.length-1] !== n-1){
+    if((n-1) - idxs[idxs.length-1] >= 3) idxs.push(n-1);
+    else idxs[idxs.length-1] = n-1;
+  }
+  idxs = idxs.filter((ii,pos,arr)=>pos===0 || ii-arr[pos-1] >= 3);
+  let xlabels = "";
+  for(const i of idxs){
+    const dt = data[i][0].slice(5).replace("-","/");
+    xlabels += `<text x="${X(i).toFixed(1)}" y="${H-8}" text-anchor="middle" `+
+               `font-size="11" fill="var(--muted)" font-family="sans-serif">${dt}</text>`;
+  }
+  // ---- label placement with collision handling ----
+  const placed = [];
+  const labelBox = (lx,ly,txt,fs,anchor)=>{
+    const w = txt.length*fs*0.62 + 6;
+    const y0 = ly - fs*0.85, y1 = ly + fs*0.3;
+    return anchor==="middle" ? [lx-w/2,y0,lx+w/2,y1] : [lx-w,y0,lx,y1];
+  };
+  const collides = (b, slack)=>{
+    slack = slack===undefined?4:slack;
+    return placed.some(p => !(b[2]+slack < p[0] || p[2]+slack < b[0] ||
+                              b[3]+slack < p[1] || p[3]+slack < b[1]));
+  };
+  const clampCX = (xx,txt,fs)=>{
+    const half = txt.length*fs*0.31 + 4;
+    return Math.min(Math.max(xx,half), W-half);
+  };
+  const textSVG = (lx,ly,txt,fs,fill,anchor)=>
+    `<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" `+
+    `text-anchor="${anchor==="middle"?"middle":"end"}" font-size="${fs}" `+
+    `font-weight="700" fill="${fill}" font-family="sans-serif">${txt}</text>`;
+  const place = (txt,fs,cands,fill)=>{
+    for(const [lx,ly,anchor] of cands){
+      const b = labelBox(lx,ly,txt,fs,anchor);
+      if(!collides(b)){ placed.push(b); return textSVG(lx,ly,txt,fs,fill,anchor); }
+    }
+    const [lx,ly,anchor] = cands[0];
+    placed.push(labelBox(lx,ly,txt,fs,anchor));
+    return textSVG(lx,ly,txt,fs,fill,anchor);
+  };
+  // econ events: only the latest of each type inside this window, on 1M chart
+  let ev = "";
+  if(events && events.length){
+    const dates = data.map(d=>d[0]);
+    const d0 = dates[0], d1 = dates[dates.length-1];
+    const snap = ed => {
+      if(dates.includes(ed)) return dates.indexOf(ed);
+      const eo = Date.parse(ed+"T00:00:00Z");
+      let best=0, bd=Infinity;
+      dates.forEach((dd,i)=>{
+        const df = Math.abs(Date.parse(dd+"T00:00:00Z")-eo);
+        if(df<bd){bd=df;best=i;}
+      });
+      return best;
+    };
+    const latest = {};
+    for(const e of events){
+      if(e.date>=d0 && e.date<=d1 &&
+         (!latest[e.label] || e.date>latest[e.label].date)) latest[e.label]=e;
+    }
+    const hits = Object.values(latest).map(e=>[snap(e.date),e.label])
+                                       .sort((a,b)=>a[0]-b[0]);
+    let prevX=null, lvl=0;
+    for(const [i,label] of hits){
+      const xx = X(i);
+      if(prevX!==null && Math.abs(xx-prevX)<44) lvl = 1-lvl; else lvl = 0;
+      prevX = xx;
+      const lx = clampCX(xx,label,10);
+      let ly=20;
+      for(const cand of (lvl===0?[20,36]:[36,20])){
+        if(!collides(labelBox(lx,cand,label,10,"middle"))){ ly=cand; break; }
+      }
+      placed.push(labelBox(lx,ly,label,10,"middle"));
+      ev += `<line x1="${xx.toFixed(1)}" y1="${PADT}" x2="${xx.toFixed(1)}" y2="${H-PADB}" `+
+            `stroke="${ECON_COLOR}" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.65"/>`+
+            `<text x="${lx.toFixed(1)}" y="${ly}" text-anchor="middle" font-size="10" `+
+            `font-weight="700" fill="var(--econ-label)" paint-order="stroke" `+
+            `stroke="var(--surface)" stroke-width="3" font-family="sans-serif">${label}</text>`;
+    }
+  }
+  const imax = vals.indexOf(Math.max(...vals));
+  const imin = vals.indexOf(Math.min(...vals));
+  const [ex,ey] = pts[n-1];
+  const endTxt = money(vals[n-1]);
+  const endSVG = place(endTxt,12,
+    [[ex-8,ey-10,"end"],[ex-8,ey+26,"end"],[ex-70,ey-10,"end"],[ex-70,ey+26,"end"]],
+    "var(--text)");
+  const hiTxt = "High "+money(Math.max(...vals));
+  const hx = clampCX(X(imax),hiTxt,11);
+  const hiSVG = place(hiTxt,11,
+    [[hx,Y(Math.max(...vals))-12,"middle"],[hx,Y(Math.max(...vals))+26,"middle"]], color);
+  const loTxt = "Low "+money(Math.min(...vals));
+  const lx = clampCX(X(imin),loTxt,11);
+  const loSVG = place(loTxt,11,
+    [[lx,Y(Math.min(...vals))+20,"middle"],[lx,Y(Math.min(...vals))-14,"middle"]], color);
+  let marks = "";
+  if(imax!==n-1) marks += `<circle cx="${X(imax).toFixed(1)}" cy="${Y(Math.max(...vals)).toFixed(1)}" r="4.5" fill="${color}"/>`;
+  if(imin!==n-1 && imin!==imax) marks += `<circle cx="${X(imin).toFixed(1)}" cy="${Y(Math.min(...vals)).toFixed(1)}" r="4.5" fill="${color}"/>`;
+  marks += hiSVG + loSVG;
+  const end = `<circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="5" `+
+              `fill="${color}" stroke="var(--surface)" stroke-width="2"/>${endSVG}`;
+  const [bx,by,bw,bh] = CH.BLEED;
+  return `<svg viewBox="${bx} ${by} ${W+bw} ${H+bh}" `+
+         `style="width:100%;height:auto;display:block" role="img" aria-label="${ariaLabel}">`+
+         `<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">`+
+         `<stop offset="0" stop-color="${color}" stop-opacity="0.30"/>`+
+         `<stop offset="1" stop-color="${color}" stop-opacity="0.02"/>`+
+         `</linearGradient></defs>${grid}${ev}`+
+         `<path d="${area}" fill="url(#${gid})"/>`+
+         `<path d="${line}" fill="none" stroke="${color}" stroke-width="3" `+
+         `stroke-linejoin="round" stroke-linecap="round"/>`+
+         `${marks}${xlabels}${end}</svg>`;
+}
+/* ============================== cards ============================== */
+function yahooURL(sym){ return `https://finance.yahoo.com/quote/${sym}`; }
+function cardHTML(def, st){
+  const {sym,name,color} = def;
+  const {price, chg, pct, tag, subPrice, subChg, subPct} = st;
+  let priceHTML;
+  const tagHTML = tag ? `<span class="tag">${tag}</span>` : "";
+  if(subPrice !== undefined){
+    priceHTML =
+      `<div class="big">${money(price)}${tagHTML}</div>`+
+      `${pill(chg,pct)}`+
+      `<div class="subline">Regular close ${money(subPrice)} ${pill(subChg,subPct,true)}</div>`;
+  }else if(st.prevCloseLine !== undefined){
+    priceHTML =
+      `<div class="big">${money(price)}${tagHTML}</div>`+
+      `${pill(chg,pct)}`+
+      `<div class="subline">Prev close ${money(st.prevCloseLine)}</div>`;
+  }else{
+    priceHTML = `<div class="big">${money(price)}${tagHTML}</div>${pill(chg,pct)}`;
+  }
+  let blocks = "";
+  st.charts.forEach((ch,j)=>{
+    blocks += chartSVG(ch.data, color, `g-${sym.toLowerCase()}-${j}`,
+                       `${sym} ${ch.period} chart`, j===0 ? ECON_EVENTS : []);
+    if(j < st.charts.length-1) blocks += `<div style="height:6px;"></div>`;
+  });
+  let rows = "";
+  st.charts.forEach((ch,i)=>{
+    const vals = ch.data.map(d=>d[1]);
+    const c = vals[vals.length-1]-vals[0], p = c/vals[0]*100;
+    const border = i===0 ? "border-top:1px solid var(--border);" : "";
+    const pad = i===0 ? "padding:8px 2px 0;" : "padding:0 2px 8px;";
+    const fg = c>=0 ? "var(--up)" : "var(--down)";
+    rows += `<tr><td style="${pad}${border}">${ch.period} change</td>`+
+            `<td style="${pad}${border}color:${fg};">${smoney(c)} (${spct(p)})</td></tr>`;
+  });
+  return `<div class="card">`+
+    `<div class="card-head"><div><div class="ticker">`+
+    `<a href="${yahooURL(sym)}" style="color:${color}">${sym}</a></div>`+
+    `<div class="fname">${name}</div></div>`+
+    `<div class="price">${priceHTML}</div></div>`+
+    `${blocks}`+
+    `<table class="stats">${rows}</table></div>`;
+}
+/* Per-symbol state from daily bars + live quote + session. */
+function symbolState(def, bars, quote, sess, today){
+  const todayBar = bars.find(b=>b.date===today) || null;
+  // completed bars: in post/closed sessions today's bar (if present) is final
+  const doneToday = todayBar && (sess.key==="post"||sess.key==="closed");
+  const comp = doneToday ? bars : bars.filter(b=>b.date!==today);
+  const lastC = comp[comp.length-1], prevC = comp[comp.length-2];
+  const live = (quote && quote.date===today) ? quote.price : null;
+  const mkData = n => {
+    let data = comp.slice(-n).map(b=>[b.date,b.close]);
+    if(live!==null && sess.key!=="closed"){
+      const last = data[data.length-1];
+      if(!(last[0]===today && last[1]===live)) data.push([today, live]);
+    }
+    return data;
+  };
+  const d1 = mkData(21), d3 = mkData(63);
+  let s;
+  if(sess.key==="open"){
+    const price = live!==null ? live : lastC.close;
+    s = {price, chg:price-lastC.close, pct:(price-lastC.close)/lastC.close*100};
+  }else if(sess.key==="pre"){
+    if(live!==null && live!==lastC.close){
+      s = {price:live, chg:live-lastC.close, pct:(live-lastC.close)/lastC.close*100,
+           tag:"Pre-Mkt", prevCloseLine:lastC.close};
+    }else{
+      const c = lastC.close-prevC.close;
+      s = {price:lastC.close, chg:c, pct:c/prevC.close*100, tag:"Pre-Mkt"};
+    }
+  }else if(sess.key==="post"){
+    if(live!==null && live!==lastC.close){
+      const tot = live-prevC.close, rc = lastC.close-prevC.close;
+      s = {price:live, chg:tot, pct:tot/prevC.close*100, tag:"Aft-Hrs",
+           subPrice:lastC.close, subChg:rc, subPct:rc/prevC.close*100};
+    }else{
+      const c = lastC.close-prevC.close;
+      s = {price:lastC.close, chg:c, pct:c/prevC.close*100, tag:"Aft-Hrs"};
+    }
+  }else{ // closed
+    const c = lastC.close-prevC.close;
+    s = {price:lastC.close, chg:c, pct:c/prevC.close*100, tag:"Closed"};
+  }
+  s.charts = [{period:"1M",data:d1},{period:"3M",data:d3}];
+  return s;
+}
+function upcomingHTML(allData){
+  let ref = "0000-00-00";
+  for(const arr of allData) for(const [d] of arr) if(d>ref) ref=d;
+  const refY = ref.slice(0,4);
+  const items = [];
+  for(const lab of ["CPI","PPI"]){
+    const cand = ECON_EVENTS.filter(e=>e.label===lab && e.date>ref)
+                            .sort((a,b)=>a.date<b.date?-1:1)[0];
+    if(!cand) continue;
+    const [y,m,dd] = cand.date.split("-").map(Number);
+    const dt = new Date(Date.UTC(y,m-1,dd));
+    const ds = dt.toLocaleDateString("en-US",
+      {weekday:"short",month:"short",day:"numeric",timeZone:"UTC"}) +
+      (String(y)!==refY ? ", "+y : "");
+    items.push(`${cand.note} \u2014 ${ds}`);
+  }
+  if(!items.length) return "";
+  return `<div class="upcoming"><b>Upcoming:</b><br>${items.join("<br>")}</div>`;
+}
+
+/* ============================== refresh loop ============================== */
+const $ = id => document.getElementById(id);
+let refreshSec = Math.min(3600, Math.max(5,
+  parseInt(localStorage.getItem("etfLiveRefreshSec")||"30",10)||30));
+let timer=null, cdTimer=null, nextAt=0, lastGood=null, painted=false;
+function setStatus(t){ $("status").innerHTML = t; }
+function showErr(msg){
+  const e = $("err");
+  if(msg){ e.style.display="block"; e.textContent = msg; }
+  else e.style.display="none";
+}
+
+// ---- market data ----
+// The page NEVER fetches Yahoo directly (no CORS header: verified
+// 2026-09-26) and no longer uses public CORS proxies (also verified
+// dead: allorigins times out / HTTP 500, corsproxy.io HTTP 401).
+// Data arrives two ways:
+//   1. embedded bundle in #bundled -> instant first paint, zero network;
+//   2. same-origin "etf-live-bundle.json" (written next to this page by
+//      build_live_bundle.py every 5 min on weekdays) -> newer data when
+//      the host serves sibling files (e.g. GitHub Pages); fails fast
+//      and silently everywhere else.
+let bundled = null, bundledAt = null, bundleLive = false;
+function validBundle(b){
+  if(!b || typeof b.at !== "string" || !b.syms) return false;
+  return SYMBOLS.every(d=>{
+    const s = b.syms[d.sym];
+    return s && s.bars && s.bars.length >= 5;
+  });
+}
+try{
+  const raw = document.getElementById("bundled").textContent;
+  // The JSON sits between marker lines the bake script uses to find it;
+  // those markers are NOT part of the JSON, so extract first, then parse.
+  const m = raw.match(/\/\*__BUNDLE_START__\*\/([\s\S]*?)\/\*__BUNDLE_END__\*\//);
+  const b = JSON.parse((m ? m[1] : raw).trim());
+  if(validBundle(b)){ bundled = b.syms; bundledAt = b.at; }
+}catch(e){ /* no bundle: page cannot render */ }
+function bundledSymbol(sym){
+  const s = bundled && bundled[sym];
+  if(!s || !s.bars || s.bars.length < 5) return null;
+  return {bars: s.bars.map(([date,close])=>({date, close})),
+          live: (typeof s.live==="number" ? s.live : null),
+          liveDate: s.liveDate || null};
+}
+function bundledAge(){
+  if(!bundledAt) return "";
+  try{
+    const p = etParts(new Date(bundledAt));
+    let h = +p.hour; const ap = h>=12 ? "PM" : "AM"; h = h%12 || 12;
+    return `${p.month}/${p.day} ${h}:${p.minute} ${ap} ET`;
+  }catch(e){ return ""; }
+}
+// Resting status: calm, says exactly how old the data is. No alarm.
+function restingStatus(){
+  const sess = marketSession();
+  setStatus(`<span><span class="seg">ETF Live</span> · `+
+    `<span class="seg">${sess.label}</span> · `+
+    `<span class="seg">data as of ${bundledAge()}</span></span>`);
+}
+// Right after the JSON file delivered newer data.
+function freshStatus(){
+  setStatus(`<span class="st-ok"><span class="seg">ETF Live</span> · ${etClock()} · `+
+    `<span class="seg">${marketSession().label}</span> · `+
+    `<span class="seg">updated ${bundledAge()}</span></span>`);
+}
+function renderStates(items, isLive){
+  const sess = marketSession(), today = etDateStr();
+  const states = [], allData = [];
+  for(const it of items){
+    const y = it.y;
+    const quote = (y.live!==null && y.liveDate) ? {date:y.liveDate, price:y.live} : null;
+    const st = symbolState(it.def, y.bars, quote, sess, today);
+    states.push([it.def, st]);
+    st.charts.forEach(c=>allData.push(c.data));
+  }
+  $("cards").innerHTML = states.map(([d,s])=>cardHTML(d,s)).join("");
+  $("upcoming").innerHTML = upcomingHTML(allData);
+  lastGood = new Date();
+  showErr("");
+  painted = true;
+  if(isLive) freshStatus(); else restingStatus();
+}
+// Instant first paint from the embedded bundle. False if no usable bundle.
+function paintFromBundle(){
+  const items = [];
+  for(const def of SYMBOLS){
+    const y = bundledSymbol(def.sym);
+    if(!y) return false;
+    items.push({def, y});
+  }
+  renderStates(items, false);
+  return true;
+}
+// Best-effort refresh of the bundle JSON written next to this page.
+// Works where the host serves sibling files (GitHub Pages); fails fast
+// and silently elsewhere (file://, artifact viewers without siblings).
+async function refreshFromFile(){
+  const c = new AbortController();
+  const t = setTimeout(()=>c.abort(), 10000);
+  try{
+    const r = await fetch("etf-live-bundle.json", {cache:"no-store", signal:c.signal});
+    if(!r.ok) return false;
+    const b = JSON.parse(await r.text());
+    if(!validBundle(b) || !(b.at > bundledAt)) return false;
+    bundled = b.syms; bundledAt = b.at; bundleLive = true;
+    const items = SYMBOLS.map(def=>({def, y: bundledSymbol(def.sym)}));
+    renderStates(items, true);
+    return true;
+  }catch(e){
+    return false; // not served here; the embedded bundle stands
+  }finally{
+    clearTimeout(t);
+  }
+}
+async function tick(){
+  await loadHolidays();
+  if(!painted && !paintFromBundle()){
+    // The embedded bundle is the only guaranteed data path; without it
+    // there is nothing to show.
+    showErr("Couldn't load market data. Please reload the page.");
+    setStatus(`<span class="st-retry">Waiting for market data…</span>`);
+    schedule();
+    return;
+  }
+  if(await refreshFromFile()){ /* freshStatus() set inside renderStates */ }
+  else if(!bundleLive) restingStatus();
+  schedule();
+}
+function schedule(){
+  clearInterval(timer); clearInterval(cdTimer);
+  nextAt = Date.now() + refreshSec*1000;
+  timer = setTimeout(tick, refreshSec*1000);
+  const cd = ()=>{
+    const s = Math.max(0, Math.ceil((nextAt-Date.now())/1000));
+    $("countdown").textContent = `next refresh in ${s}s · every ${refreshSec}s`;
+  };
+  cd(); cdTimer = setInterval(cd, 500);
+}
+function applyInterval(fromInput){
+  let v = parseInt($("refreshSec").value,10);
+  if(!isFinite(v)) v = refreshSec;
+  v = Math.min(3600, Math.max(5, v));
+  $("refreshSec").value = v;
+  refreshSec = v;
+  localStorage.setItem("etfLiveRefreshSec", String(v));
+  if(fromInput) schedule();
+}
+$("applyRefresh").addEventListener("click", ()=>applyInterval(true));
+$("refreshSec").addEventListener("keydown", e=>{
+  if(e.key==="Enter") applyInterval(true);
+});
+// init
+$("refreshSec").value = refreshSec;
+tick();
+</script>

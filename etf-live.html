@@ -74,13 +74,33 @@ const SYMBOLS = [
 // (verified 2026-09-26).
 const yahooChartURL = s =>
   `https://query1.finance.yahoo.com/v8/finance/chart/${s}?range=6mo&interval=1d`;
-// NYSE holidays (sessions labelled "Market closed"); extend as needed.
-const NYSE_HOLIDAYS = new Set([
-  "2026-01-01","2026-01-19","2026-02-16","2026-04-03","2026-05-25",
-  "2026-06-19","2026-07-03","2026-09-07","2026-11-26","2026-12-25",
-  "2027-01-01","2027-01-18","2027-02-15","2027-04-02","2027-05-31",
-  "2027-06-18","2027-07-05","2027-09-06","2027-11-25","2027-12-24",
-]);
+// NYSE holidays (sessions labelled "Market closed").
+// Loaded at runtime from "nyse-holidays.json" — same origin, assembled at
+// deploy time from the canonical list (see scripts/deploy_portal.py). The
+// page never fetches holiday data from GitHub or anywhere else on the
+// network. Until the fetch succeeds the set stays empty (fail open).
+let NYSE_HOLIDAYS = new Set();
+// Best-effort load of the deployed holiday file. Called at the top of every
+// tick — including the first — so holidays are in place before first paint.
+async function loadHolidays(){
+  const c = new AbortController();
+  const t = setTimeout(()=>c.abort(), 8000);
+  try{
+    const r = await fetch("nyse-holidays.json",
+      {cache:"no-store", signal:c.signal});
+    if(!r.ok) return; // not served alongside the page; fail open
+    const d = JSON.parse(await r.text());
+    if(!d || !Array.isArray(d.holidays) || !d.holidays.length) return;
+    const ok = d.holidays.every(h=>typeof h==="string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(h));
+    if(!ok) return;
+    NYSE_HOLIDAYS = new Set(d.holidays);
+  }catch(e){
+    /* fail open: session labels fall back to weekday-only */
+  }finally{
+    clearTimeout(t);
+  }
+}
 // Economic-release dates (BLS / Federal Reserve schedules). Update as they roll.
 const ECON_EVENTS = [
   {date:"2026-08-07",label:"NFP", note:"July jobs report"},
@@ -548,6 +568,7 @@ async function refreshFromFile(){
   }
 }
 async function tick(){
+  await loadHolidays();
   if(!painted && !paintFromBundle()){
     // The embedded bundle is the only guaranteed data path; without it
     // there is nothing to show.

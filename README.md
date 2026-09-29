@@ -38,9 +38,14 @@ search, and never fetched live by the page from GitHub.
 ## Deploying
 
 `scripts/deploy_portal.py` builds the deployable and pushes the `gh-pages`
-branch. It validates the exact holiday JSON being assembled (structure +
-freshness — a stale mirror aborts the deploy). `tests/` holds the portal
-regression suite, which must pass before any deploy.
+branch. Deploy policy: the portal's own files are hard requirements (any
+read/write failure aborts the deploy); the holiday JSON is best-effort —
+if it cannot be fetched or fails validation (structure + freshness), the
+previously deployed copy is carried forward untouched and the deploy
+continues with a warning, so a dead holiday pipeline never blocks shipping
+a page fix. `docs/` is excluded from the served branch. `tests/` holds the
+portal regression suite, which must pass before any deploy (holiday-data
+checks are advisory warnings; only portal-file checks can fail the gate).
 
 Releases are tagged on `main` with semver (e.g. `v1.0.0`) before deploying,
 so the tag always identifies the exact deployed source commit. Every deploy

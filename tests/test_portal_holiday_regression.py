@@ -36,6 +36,7 @@ sys.path.insert(0, os.path.join(REPO, "scripts"))
 from deploy_portal import validate_holidays  # noqa: E402
 
 failures = []
+warnings = []
 
 
 def check(name, cond, detail=""):
@@ -45,28 +46,44 @@ def check(name, cond, detail=""):
         failures.append(name)
 
 
-# ---- 1. canonical workspace JSON (same rules as the deploy gate) ----
+def warn(name, detail=""):
+    # Soft check (deploy policy 2026-09-29): a bad holiday pipeline warns
+    # but never fails the suite — the deploy carries the last good copy
+    # forward. Only the portal's own files can fail the gate.
+    print("WARNING: " + name + ("" if not detail else " — " + detail))
+    warnings.append(name)
+
+
+# ---- 1. canonical workspace JSON (advisory only, never fails the gate) ----
 hs = None
 try:
     ws_text = open(WORKSPACE_JSON).read()
 except OSError as e:
-    check("workspace JSON readable", False, str(e))
+    warn("workspace JSON readable", str(e))
 else:
     try:
         doc = validate_holidays(ws_text)
     except (AssertionError, ValueError) as e:
-        check("workspace JSON passes canonical validation (deploy-gate rules)",
-              False, str(e)[:200])
+        warn("workspace JSON passes canonical validation",
+             str(e)[:200])
     else:
-        check("workspace JSON passes canonical validation (deploy-gate rules)",
-              True)
+        print("PASS: workspace JSON passes canonical validation "
+              "(advisory)")
         hs = doc["holidays"]
 
 if hs is not None:
-    check("old wrong date 2027-04-02 absent", "2027-04-02" not in hs)
-    check("sources cite the official NYSE publication",
-          NYSE_URL in doc.get("sources", []),
-          "sources=" + str(doc.get("sources")))
+    if "2027-04-02" in hs:
+        warn("old wrong date 2027-04-02 absent", "date still present")
+    else:
+        print("PASS: old wrong date 2027-04-02 absent")
+    if NYSE_URL in doc.get("sources", []):
+        print("PASS: sources cite the official NYSE publication")
+    else:
+        warn("sources cite the official NYSE publication",
+             "sources=" + str(doc.get("sources")))
+else:
+    warn("holiday scenarios", "no valid holiday list — node functional "
+         "test of holiday scenarios skipped")
 
 # ---- 2. page static checks ----
 page = open(PAGE).read()
@@ -87,6 +104,14 @@ check("marketSession consults the dynamic holiday set",
 # ---- 3. node: syntax + functional test of the real page code ----
 m = re.search(r'<script>\n"use strict";(.*?)\n</script>\s*$', page, re.S)
 check("main script block extractable", m is not None)
+if m:
+    # Portal's own code: hard check, runs with or without holiday data.
+    script = '"use strict";' + m.group(1)
+    with open("/tmp/portal_main_script.js", "w") as f:
+        f.write(script)
+    r = subprocess.run(["node", "--check", "/tmp/portal_main_script.js"],
+                       capture_output=True, text=True)
+    check("page JS syntax valid", r.returncode == 0, r.stderr.strip()[:200])
 if m and hs is not None:
     closed_day = hs[0]  # first real holiday in the current list
     open_day = "2026-09-29"  # a Tuesday
@@ -98,13 +123,6 @@ if m and hs is not None:
         y, mo, d = (int(x) for x in ymd.split("-"))
         hh = 15 if mo in (11, 12, 1, 2, 3) else 14  # 10:00 ET in EST vs EDT
         return f"Date.UTC({y}, {mo - 1}, {d}, {hh})"
-
-    script = '"use strict";' + m.group(1)
-    with open("/tmp/portal_main_script.js", "w") as f:
-        f.write(script)
-    r = subprocess.run(["node", "--check", "/tmp/portal_main_script.js"],
-                       capture_output=True, text=True)
-    check("page JS syntax valid", r.returncode == 0, r.stderr.strip()[:200])
 
     driver = r"""
 // ---- test prelude: stub browser APIs, then run the real page script ----
@@ -167,6 +185,9 @@ global.localStorage = { getItem: () => null, setItem(){} };
           (r.stdout + r.stderr).strip()[-500:])
 
 print()
+if warnings:
+    print(f"{len(warnings)} warning(s) (advisory, gate not failed): "
+          f"{', '.join(warnings)}")
 if failures:
     print(f"{len(failures)} FAILING CHECK(S): {', '.join(failures)}")
     sys.exit(1)

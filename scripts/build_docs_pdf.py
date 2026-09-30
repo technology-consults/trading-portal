@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build docs/README.pdf from README.md (reportlab).
+"""Build docs/trading-portal-documentation.pdf from README.md (reportlab).
 
 The PDF carries its provenance on page 1: generation time, the source
 README's last-modified time, and the release tag it was built from, so a
@@ -12,7 +12,7 @@ import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(REPO, "README.md")
-OUT = os.path.join(REPO, "docs", "README.pdf")
+OUT = os.path.join(REPO, "docs", "trading-portal-documentation.pdf")
 TAG = os.environ.get("PORTAL_DOC_TAG", "v1.1.0")
 
 from reportlab.lib.pagesizes import letter

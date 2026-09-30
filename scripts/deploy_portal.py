@@ -121,10 +121,10 @@ def assemble():
     for entry in tree["tree"]:
         if entry["type"] != "blob":
             continue
-        if entry["path"] == "docs/trading-portal-documentation.pdf" or \
+        if entry["path"] == "docs/technical/trading-portal-documentation.pdf" or \
                 entry["path"].startswith("docs/"):
             # Documentation is not site content — the served branch is the
-            # website. (docs/trading-portal-documentation.pdf is binary and would also break the
+            # website. (docs/technical/trading-portal-documentation.pdf is binary and would also break the
             # text assembly below.)
             continue
         files[entry["path"]] = get_file_text(PORTAL_REPO, entry["path"],
